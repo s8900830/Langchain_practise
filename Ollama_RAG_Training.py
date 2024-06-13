@@ -113,14 +113,22 @@ def askPDFPOST():
             ("ai", "Context: {context}"),
         ])
 
-    document_chain = create_stuff_documents_chain(cached_llm, chat_prompt)
+    document_chain = create_stuff_documents_chain(cached_llm, chat_prompt )
     chain = create_retrieval_chain(
         retriever, document_chain)
 
     result = chain.invoke({"input": query})
 
-    response_answer = {"answer": result["answer"]}
-    return result["answer"]
+    print(result)
+
+    sources = []
+    for doc in result["context"]:
+        sources.append(
+            {"source": doc.metadata["source"], "page_content": doc.page_content}
+        )
+
+    response_answer = {"answer": result["answer"],"sources":sources}
+    return response_answer
 
 
 @app.route("/pdf", methods=["POST"])
