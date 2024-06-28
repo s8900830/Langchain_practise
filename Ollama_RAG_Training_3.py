@@ -8,7 +8,7 @@ chat_history =[]
 
 prompt_template = ChatPromptTemplate.from_messages(
     [
-        ("system","You are a AI named Mike , you answer questions with simple answers and no funny stuff."),
+        ("system","你是一個輔助回答機器人，你要用中文回答一切問題 並給予使用者任何意見"),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human","{input}"),
     ]
@@ -20,12 +20,13 @@ def start_app():
     while True:
         question=input("You：")
         if question == "End"  or question =="end":
-            print(chat_history)
+            for chat in chat_history:
+                print(chat)
             return
         # response = llm.invoke(question)
         response = chain.invoke({"input":question,"chat_history":chat_history})
         chat_history.append(HumanMessage(content=question))
-        chat_history.append(HumanMessage(content=response))
+        chat_history.append(AIMessage(content=response))
         print("AI："+response)
 
 if __name__ == "__main__":
