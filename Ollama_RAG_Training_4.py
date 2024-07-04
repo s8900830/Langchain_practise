@@ -29,7 +29,7 @@ os.environ["SEARCHAPI_API_KEY"] = "uAgbd1TdU5aCBoAZ2MotYWm2"
 os.environ["TAVILY_API_KEY"] = "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"
 
 MODEL = "llama3"
-BASE_URL="http://10.2.1.36:11434/v1"
+BASE_URL="http://10.2.1.36:11434/"
 
 # search = GoogleSearchAPIWrapper()
 # search = SearchApiAPIWrapper()
@@ -56,17 +56,19 @@ BASE_URL="http://10.2.1.36:11434/v1"
 #     "langsmith_search",
 #     "搜索关于LangSmith的信息。对于任何关于LangSmith的问题，你必须使用这个工具！",
 # )
-llm = ChatOpenAI(api_key="ollama",model=MODEL,base_url=BASE_URL)
+# llm = ChatOpenAI(api_key="ollama",model=MODEL,base_url=BASE_URL,temperature=0)
+llm = Ollama(model=MODEL,base_url=BASE_URL)
+
 # embeddings = OllamaEmbeddings(model=MODEL,base_url=BASE_URL)
 
 search = TavilySearchResults()
 
 
-tool = Tool(
-        name="search",
-        func=search.run,
-        description="use it tool to find correct answer",
-    )
+# tool = Tool(
+#         name="search",
+#         func=search.run,
+#         description="use it tool to find correct answer",
+#     )
 
 
 # 第三步：创建工具（检索工具）
@@ -79,10 +81,10 @@ tool = Tool(
 
 
 instructions = """You are an assistant."""
-base_prompt = hub.pull("langchain-ai/openai-functions-template")
-prompt = base_prompt.partial(instructions=instructions)
+base_prompt =  hub.pull("hwchase17/react")
 
-tools = [tool]
+prompt = base_prompt#.partial(instructions=instructions)
+tools = [search]
 
 
 # chat_history =[]
@@ -96,9 +98,11 @@ tools = [tool]
 #     ]
 # )
 
+# Agent 寫法有變 initialize_agent 已經是過去式，現在可以使用 create_react_agent, create_json_agent, create_structured_chat_agent 等等
+# 參照 https://api.python.langchain.com/en/latest/agents/langchain.agents.initialize.initialize_agent.html
 
-agent = create_tool_calling_agent(llm, tools, prompt) #创建Agent
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+agent = create_react_agent(llm, tools, prompt) #创建Agent
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
 
 def start_app():
     
@@ -114,7 +118,7 @@ def start_app():
 
         # chat_history.append(HumanMessage(content=question))
         # chat_history.append(AIMessage(content=response["output"]))
-        print("AI："+response["output"])
+        print("AI："+response)
 
 def test():
     print(search.invoke({"query": "What happened in the latest burning man floods"}))
