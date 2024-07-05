@@ -82,22 +82,26 @@ search = TavilySearchResults()
 
 instructions = """You are an assistant."""
 base_prompt =  hub.pull("hwchase17/react")
-
 prompt = base_prompt#.partial(instructions=instructions)
 tools = [search]
 
 
-# chat_history =[]
+chat_history =[]
 
 # prompt = ChatPromptTemplate.from_messages(
 #     [
-#     ("system", "你要用中文回答一切問，請勿使用其它國家語系回答問題"),
+#     ("system", "你要用中文回答任何問題,您可以使用以下工具{tool},並且請勿使用其它國家語系回答問題"),
 #     ("placeholder", "{chat_history}"),
 #     ("human", "{input}"),
 #     ("placeholder", "{agent_scratchpad}"),
 #     ]
 # )
 
+from langchain_core.prompts import PromptTemplate
+
+prompt = PromptTemplate.from_template(
+    "你要用中文回答任何問題,您可以使用以下工具{tools},並回答你有使用什麼{tool_names},且請勿使用其它國家語系回答問題{agent_scratchpad}"
+)
 # Agent 寫法有變 initialize_agent 已經是過去式，現在可以使用 create_react_agent, create_json_agent, create_structured_chat_agent 等等
 # 參照 https://api.python.langchain.com/en/latest/agents/langchain.agents.initialize.initialize_agent.html
 

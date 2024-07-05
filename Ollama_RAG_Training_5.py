@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
 from langchain_community.utilities import GoogleSearchAPIWrapper,SearchApiAPIWrapper
 from langchain_core.tools import Tool
 from langchain.agents import AgentType, initialize_agent
-from langchain.agents import AgentExecutor, create_react_agent
+# from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain.tools.retriever import create_retriever_tool
 from langchain import hub
@@ -21,6 +21,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OllamaEmbeddings
 # from langchain_community.document_loaders import WebBaseLoader
 from fake_useragent import UserAgent
+from langgraph.prebuilt import create_react_agent
 
 os.environ['USER_AGENT'] = UserAgent().chrome
 os.environ["GOOGLE_CSE_ID"] = "e57d9d4e1e9c5479e"
@@ -37,12 +38,7 @@ search = TavilySearchResults()
 
 tools = [search]
 
-agent= initialize_agent(
-    tools, 
-    llm, 
-    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-    handle_parsing_errors=True,
-    verbose = True)
+agent_executor = create_react_agent(model=llm, tools=tools)
 
 def start_app():
     
@@ -53,9 +49,10 @@ def start_app():
             #     print(chat)
             return
 
-        response = agent.invoke({"input":question})
-
-        print("AI："+response["output"])
+        response = agent_executor.invoke({"messages":[HumanMessage(content=question)]})
+        for a in response:
+            print(a)
+        # print("AI："+response["messages"][1])
 
 def test():
     print(search.invoke({"query": "What happened in the latest burning man floods"}))
