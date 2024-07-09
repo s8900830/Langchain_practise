@@ -81,32 +81,54 @@ search = TavilySearchResults()
 
 
 instructions = """You are an assistant."""
-base_prompt =  hub.pull("hwchase17/react")
-prompt = base_prompt#.partial(instructions=instructions)
+# base_prompt =  hub.pull("hwchase17/react")
+prompt =  hub.pull("mooncake1313/gkzxs")
+
 tools = [search]
 
 
 chat_history =[]
 
-# prompt = ChatPromptTemplate.from_messages(
+# base_prompt = ChatPromptTemplate.from_messages(
 #     [
-#     ("system", "你要用中文回答任何問題,您可以使用以下工具{tool},並且請勿使用其它國家語系回答問題"),
+#     ("system", """
+
+#         根據問題作出最佳的回答，並全程使用中文回應，你可以使用以下工具:
+
+#         {tools}
+
+#         根據以下格式回覆解答:
+
+#         Question: the input question you must answer
+#         Thought: you should always think about what to do
+#         Action: the action to take, should be one of [{tool_names}]
+#         Action Input: the input to the action
+#         Observation: the result of the action
+#         ... (this Thought/Action/Action Input/Observation can repeat N times)
+#         Thought: I now know the final answer
+#         Final Answer: the final answer to the original input question
+#         Begin!
+#         Question: {input}
+#         Thought:{agent_scratchpad}
+        
+#         """),
 #     ("placeholder", "{chat_history}"),
 #     ("human", "{input}"),
 #     ("placeholder", "{agent_scratchpad}"),
 #     ]
 # )
+# prompt = base_prompt.partial(instructions=instructions)
 
 from langchain_core.prompts import PromptTemplate
 
-prompt = PromptTemplate.from_template(
-    "你要用中文回答任何問題,您可以使用以下工具{tools},並回答你有使用什麼{tool_names},且請勿使用其它國家語系回答問題{agent_scratchpad}"
-)
+# prompt = PromptTemplate.from_template(
+#     "你要用中文回答任何問題,您可以使用以下工具{tools},並回答你有使用什麼{tool_names},且請勿使用其它國家語系回答問題{agent_scratchpad}"
+# )
 # Agent 寫法有變 initialize_agent 已經是過去式，現在可以使用 create_react_agent, create_json_agent, create_structured_chat_agent 等等
 # 參照 https://api.python.langchain.com/en/latest/agents/langchain.agents.initialize.initialize_agent.html
 
 agent = create_react_agent(llm, tools, prompt) #创建Agent
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True,handle_parsing_errors=True)
 
 def start_app():
     
@@ -118,11 +140,11 @@ def start_app():
             return
 
         # response = agent_executor.invoke({"input":question,"chat_history":chat_history})
-        response = agent_executor.invoke({"input":question})
+        response = agent_executor.invoke({"question":question,"chat_history":chat_history})
 
         # chat_history.append(HumanMessage(content=question))
         # chat_history.append(AIMessage(content=response["output"]))
-        print("AI："+response)
+        print("AI："+response["output"])
 
 def test():
     print(search.invoke({"query": "What happened in the latest burning man floods"}))
